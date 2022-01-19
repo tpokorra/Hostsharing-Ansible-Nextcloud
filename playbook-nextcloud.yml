@@ -1,0 +1,87 @@
+---
+- hosts: nextcloud
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    # see https://docs.ansible.com/ansible/latest/user_guide/become.html#risks-of-becoming-an-unprivileged-user
+    ansible_common_remote_group: "{{pac}}"
+    ansible_remote_tmp: ~/.ansible/tmp
+
+  tasks:
+  - name: Create user, domain and database
+    import_tasks: tasks/hs_basis.yml
+
+  #################################
+  ## create directories
+  #################################
+  - name: create directory etc
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    file:
+      path: "/home/pacs/{{pac}}/users/{{user}}/etc"
+      state: directory
+  - name: create directory var/tmp
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    file:
+      path: "/home/pacs/{{pac}}/users/{{user}}/var/tmp"
+      state: directory
+  - name: create directory var/log
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    file:
+      path: "/home/pacs/{{pac}}/users/{{user}}/var/log"
+      state: directory
+  - name: create directory var/run
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    file:
+      path: "/home/pacs/{{pac}}/users/{{user}}/var/run"
+      state: directory
+
+  #################################
+  ## install requirements
+  #################################
+
+  ##################################
+  ## install nextcloud
+  ##################################
+
+  # TODO
+
+  ##################################
+  ## configuration
+  ##################################
+
+  # TODO
+
+  ######################
+  ## initialise instance
+  ######################
+
+  # TODO
+
+  ########################
+  ## setup the apache site
+  ########################
+
+  # TODO
+
+  ####################################
+  ## install cron jobs
+  ####################################
+
+  # TODO
+
+  ##############################################
+  ## start services via monit
+  ##############################################
+  - name: start monit
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      /usr/bin/monit -c ".monitrc"
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/"
+      creates: "/home/pacs/{{pac}}/users/{{user}}/var/run/monit.id"
+

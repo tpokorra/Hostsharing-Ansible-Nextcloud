@@ -1,0 +1,22 @@
+---
+#################################
+## setup the user, the domain, the database
+#################################
+- name: ensure user exists
+  hsuser.js: name="{{pac}}-{{user}}" password="{{password}}" exists="true"
+- name: setup domain
+  hsdomain.js: name="{{domain}}" owner="{{pac}}-{{user}}" exists="true"
+- name: setup database
+  hsdatabase.js: name="{{pac}}_{{user}}" password="{{password}}" instance="postgresql" exists="true"
+
+# this actually still shows a warning:
+# [WARNING]: Module remote_tmp /home/pacs/tim03/users/tstisso/.ansible/tmp did not exist and was created with a mode of 0700, this may cause issues when running as another user. To avoid this, create the remote_tmp dir with the correct permissions manually
+# At least we know it is supposed to be like this.
+- name: create ansible tmp directory
+  become: yes
+  become_user: "{{pac}}-{{user}}"
+  file:
+    path: "/home/pacs/{{pac}}/users/{{user}}/.ansible/tmp"
+    owner: "{{pac}}-{{user}}"
+    mode: 'u+rwx'
+    state: directory
