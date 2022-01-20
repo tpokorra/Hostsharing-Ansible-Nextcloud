@@ -100,6 +100,11 @@
     become_user: "{{pac}}-{{user}}"
     template: dest="/home/pacs/{{pac}}/users/{{user}}/etc/redis.conf" src="templates/redis.conf" mode=0600
 
+  - name: upload turnserver configuration
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    template: dest="/home/pacs/{{pac}}/users/{{user}}/etc/turnserver.conf" src="templates/turnserver.conf" mode=0600
+
   - name: upload monit configuration
     become: yes
     become_user: "{{pac}}-{{user}}"
@@ -159,7 +164,7 @@
       job: "/usr/sbin/logrotate -s $HOME/.logrotate.state $HOME/.logrotate"
 
   ##############################################
-  ## start the redis service via monit
+  ## start the redis and turn services via monit
   ##############################################
   - name: start monit
     become: yes
