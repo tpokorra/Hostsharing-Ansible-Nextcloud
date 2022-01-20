@@ -9,3 +9,6 @@ nextcloud:
       password: testpassw0rd_changeme
       redispassword: testpassw0rd_changeme
       redisport: 11111
+
+      # see https://nextcloud.com/changelog/#latest22
+      nextcloud_version: 22.2.3

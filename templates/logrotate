@@ -1,0 +1,14 @@
+/home/pacs/{{pac}}/users/{{user}}/var/log/monit.log {
+   copytruncate
+   daily
+   rotate 7
+   compress
+   missingok
+}
+/home/pacs/{{pac}}/users/{{user}}/var/log/redis.log {
+   copytruncate
+   daily
+   rotate 7
+   compress
+   missingok
+}

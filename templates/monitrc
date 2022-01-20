@@ -1,0 +1,10 @@
+set daemon 60 with start delay 120
+set logfile /home/pacs/{{pac}}/users/{{user}}/var/log/monit.log
+set idfile /home/pacs/{{pac}}/users/{{user}}/var/run/monit.id
+set statefile /home/pacs/{{pac}}/users/{{user}}/var/run/monit.state
+set mailserver localhost
+set mail-format { from: monit@{{pac}}.hostsharing.net }
+
+check process redis with pidfile /home/pacs/{{pac}}/users/{{user}}/var/run/redis-server.pid
+  start program "/usr/bin/redis-server /home/pacs/{{pac}}/users/{{user}}/etc/redis.conf"
+  stop program "/bin/bash -c '/bin/kill $( cat /home/pacs/{{pac}}/users/{{user}}/var/run/redis-server.pid )'"
