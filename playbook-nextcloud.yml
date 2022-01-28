@@ -162,6 +162,13 @@
       minute: "27"
       hour: "1"
       job: "/usr/sbin/logrotate -s $HOME/.logrotate.state $HOME/.logrotate"
+  - name: run nextcloud cronjob
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    cron:
+      name: "nextcloud"
+      minute: "*/5"
+      job: "/usr/bin/php $HOME/nextcloud/cron.php"
 
   ##############################################
   ## start the redis and turn services via monit
