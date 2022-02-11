@@ -169,6 +169,14 @@
       name: "nextcloud"
       minute: "*/5"
       job: "/usr/bin/php $HOME/nextcloud/cron.php"
+  - name: update all nextcloud apps each night
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    cron:
+      name: "nextcloud app updates"
+      hour: 1
+      minute: 12
+      job: "/usr/bin/php $HOME/nextcloud/occ app:update --all -n --no-ansi"
 
   ##############################################
   ## start the redis and turn services via monit
