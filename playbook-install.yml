@@ -174,8 +174,8 @@
     become_user: "{{pac}}-{{user}}"
     cron:
       name: "nextcloud app updates"
-      hour: 1
-      minute: 12
+      hour: "1"
+      minute: "12"
       job: "/usr/bin/php $HOME/nextcloud/occ app:update --all -n --no-ansi"
 
   ##############################################

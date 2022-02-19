@@ -11,6 +11,12 @@ nextcloud:
       dbms: postgresql
       redispassword: testpassw0rd_changeme
       redisport: 11111
+      turnport: 11112
+      # xyz00.hostsharing.net
+      turnpaketip: 192.168.178.201
+      # hxy.hostsharing.net
+      turnhostip: 192.168.178.200
+      turnsecret: another_top_secret
 
       # see https://nextcloud.com/changelog/#latest22
-      nextcloud_version: 22.2.3
+      nextcloud_version: 22.2.5
