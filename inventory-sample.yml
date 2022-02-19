@@ -7,6 +7,8 @@ nextcloud:
       domain: cloud.example.org
       user: nextcloud
       password: testpassw0rd_changeme
+      # database: postgresql or mysql
+      dbms: postgresql
       redispassword: testpassw0rd_changeme
       redisport: 11111
 

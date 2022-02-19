@@ -11,6 +11,6 @@
   - name: drop domain
     hsdomain.js: name="{{domain}}" owner="{{pac}}-{{user}}" exists="false"
   - name: drop database
-    hsdatabase.js: name="{{pac}}_{{user}}" password="{{password}}" instance="postgresql" exists="false"
+    hsdatabase.js: name="{{pac}}_{{user}}" password="{{password}}" instance="{{dbms}}" exists="false"
   - name: remove user
     hsuser.js: name="{{pac}}-{{user}}" password="{{password}}" exists="false"
