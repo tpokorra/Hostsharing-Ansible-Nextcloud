@@ -5,6 +5,7 @@
     # see https://docs.ansible.com/ansible/latest/user_guide/become.html#risks-of-becoming-an-unprivileged-user
     ansible_common_remote_group: "{{pac}}"
     ansible_remote_tmp: ~/.ansible/tmp
+    random_password: "{{ lookup('password', '/dev/null length=16 chars=ascii_letters') }}"
 
   tasks:
   - name: Create user, domain and database
@@ -91,6 +92,38 @@
       dest: /home/pacs/{{pac}}/users/{{user}}/nextcloud
       extra_opts: [--strip-components=1]
 
+  - name: finish nextcloud installation
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      # see https://docs.nextcloud.com/server/latest/admin_manual/installation/command_line_installation.html
+      php occ maintenance:install --database "{{dbms}}" --database-name "{{pac}}_{{user}}" --database-user "{{pac}}_{{user}}" --database-pass "{{password}}" --admin-user "admin_nextcloud" --admin-pass "{{random_password}}"
+      touch ~/ansible.nextcloud_installed
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
+      creates: "/home/pacs/{{pac}}/users/{{user}}/.ansible_nextcloud_installed"
+
+  - name: set the trusted domain
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    lineinfile:
+      path: /home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php
+      regexp: "^.*0 => 'localhost',$"
+      line: "    0 => 'localhost', 1 => '{{domain}}',"
+
+  - name: install default apps
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      # see https://docs.nextcloud.com/server/19/admin_manual/configuration_server/occ_command.html#apps-commands-label
+      php -d memory_limit=512M ./occ app:install {{item}}
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
+      creates: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/apps/{{item}}"
+    loop: "{{ ['richdocuments', 'richdocumentscode', 'contacts', 'calendar', 'mail', 'spreed', 'groupfolders', 'twofactor_totp'] }}"
+
   ##################################
   ## configuration
   ##################################
@@ -118,12 +151,19 @@
   ########################
   ## setup the apache site
   ########################
+  - name: Check for htdocs-ssl directory
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    stat:
+      path: "/home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/htdocs-ssl"
+    register: htdocsssl
   - name: drop htdocs-ssl
     become: yes
     become_user: "{{pac}}-{{user}}"
     file:
        path: "/home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/htdocs-ssl"
        state: absent
+    when: htdocsssl.stat.exists and htdocsssl.stat.isdir
   - name: create symbolic link for htdocs-ssl
     become: yes
     become_user: "{{pac}}-{{user}}"
