@@ -5,7 +5,6 @@
     # see https://docs.ansible.com/ansible/latest/user_guide/become.html#risks-of-becoming-an-unprivileged-user
     ansible_common_remote_group: "{{pac}}"
     ansible_remote_tmp: ~/.ansible/tmp
-    random_password: "{{ lookup('password', '/dev/null length=16 chars=ascii_letters') }}"
 
   tasks:
   - name: Create user, domain and database
@@ -45,6 +44,41 @@
       path: "/home/pacs/{{pac}}/users/{{user}}/var/run"
       state: directory
 
+  ##################################
+  ## install nextcloud
+  ##################################
+  - name: install nextcloud
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    unarchive:
+      src: https://download.nextcloud.com/server/releases/nextcloud-{{nextcloud_version}}.tar.bz2
+      remote_src: yes
+      dest: /home/pacs/{{pac}}/users/{{user}}/nextcloud
+      extra_opts: [--strip-components=1]
+
+  - name: finish nextcloud installation
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      # see https://docs.nextcloud.com/server/latest/admin_manual/installation/command_line_installation.html
+      php occ maintenance:install --database "{{dbms}}" --database-name "{{pac}}_{{user}}" --database-user "{{pac}}_{{user}}" --database-pass "{{password}}" --admin-user "{{adminuser}}" --admin-pass "{{adminpassword}}"
+      touch ~/ansible.nextcloud_installed
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
+      creates: "/home/pacs/{{pac}}/users/{{user}}/.ansible_nextcloud_installed"
+
+  - name: install default apps
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      # see https://docs.nextcloud.com/server/19/admin_manual/configuration_server/occ_command.html#apps-commands-label
+      php -d memory_limit=512M ./occ app:install {{item}}
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
+      creates: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/apps/{{item}}"
+    loop: "{{ ['richdocuments', 'richdocumentscode', 'contacts', 'calendar', 'mail', 'spreed', 'groupfolders', 'twofactor_totp'] }}"
 
   #################################
   ## setup the data directory
@@ -80,52 +114,22 @@
       mode: 0744
     when: not hdd_storage.stat.exists
 
-  ##################################
-  ## install nextcloud
-  ##################################
-  - name: install nextcloud
-    become: yes
-    become_user: "{{pac}}-{{user}}"
-    unarchive:
-      src: https://download.nextcloud.com/server/releases/nextcloud-{{nextcloud_version}}.tar.bz2
-      remote_src: yes
-      dest: /home/pacs/{{pac}}/users/{{user}}/nextcloud
-      extra_opts: [--strip-components=1]
-
-  - name: finish nextcloud installation
-    become: yes
-    become_user: "{{pac}}-{{user}}"
-    shell: |
-      # see https://docs.nextcloud.com/server/latest/admin_manual/installation/command_line_installation.html
-      php occ maintenance:install --database "{{dbms}}" --database-name "{{pac}}_{{user}}" --database-user "{{pac}}_{{user}}" --database-pass "{{password}}" --admin-user "admin_nextcloud" --admin-pass "{{random_password}}"
-      touch ~/ansible.nextcloud_installed
-    args:
-      executable: /bin/bash
-      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
-      creates: "/home/pacs/{{pac}}/users/{{user}}/.ansible_nextcloud_installed"
-
-  - name: set the trusted domain
-    become: yes
-    become_user: "{{pac}}-{{user}}"
+  - name: configure hdd data directory
     lineinfile:
-      path: /home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php
-      regexp: "^.*0 => 'localhost',$"
-      line: "    0 => 'localhost', 1 => '{{domain}}',"
+      path: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php"
+      regexp: "^.*'datadirectory' => '.*',$"
+      line: "  'datadirectory' => '/home/storage/{{pac}}/users/{{user}}/data',"
+    when: hdd_storage.stat.exists
 
-  - name: install default apps
-    become: yes
-    become_user: "{{pac}}-{{user}}"
-    shell: |
-      # see https://docs.nextcloud.com/server/19/admin_manual/configuration_server/occ_command.html#apps-commands-label
-      php -d memory_limit=512M ./occ app:install {{item}}
-    args:
-      executable: /bin/bash
-      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
-      creates: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/apps/{{item}}"
-    loop: "{{ ['richdocuments', 'richdocumentscode', 'contacts', 'calendar', 'mail', 'spreed', 'groupfolders', 'twofactor_totp'] }}"
+  - name: configure ssd data directory
+    lineinfile:
+      path: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php"
+      regexp: "^.*'datadirectory' => '.*',$"
+      line: "  'datadirectory' => '/home/pacs/{{pac}}/users/{{user}}/data',"
+    when: not hdd_storage.stat.exists
 
   ##################################
-  ## configuration
+  ## other software configuration
   ##################################
 
   - name: upload redis configuration
@@ -147,6 +151,55 @@
     become: yes
     become_user: "{{pac}}-{{user}}"
     template: dest="/home/pacs/{{pac}}/users/{{user}}/.logrotate" src="templates/logrotate" mode=0600
+
+  ##########################
+  ## nextcloud configuration
+  ##########################
+  - name: set the trusted domain
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    lineinfile:
+      path: /home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php
+      regexp: "^.*0 => 'localhost',$"
+      line: "    0 => 'localhost', 1 => '{{domain}}',"
+
+  - name: configure redis for nextcloud
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    blockinfile:
+      path: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php"
+      insertbefore: '^\)\;'
+      block: |2
+          'memcache.local' => '\\OC\\Memcache\\Redis',
+          'memcache.distributed' => '\\OC\\Memcache\\Redis',
+          'memcache.locking' => '\\OC\\Memcache\\Redis',
+          'redis' =>
+          array (
+            'host' => '127.0.0.1',
+            'port' => {{redisport}},
+            'password' => '{{redispassword}}',
+            'timeout' => 1.5,
+          ),
+
+  - name: configure default_phone_region
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    lineinfile:
+      path: /home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php
+      regexp: "^.*'default_phone_region' =>.*,$"
+      line: "  'default_phone_region' => '{{default_phone_region}}',"
+      insertbefore: '^\)\;'
+    when: default_phone_region is defined
+
+  - name: configure skeletondirectory
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    lineinfile:
+      path: /home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php
+      regexp: "^.*'skeletondirectory' =>.*,$"
+      line: "  'skeletondirectory' => '',"
+      insertbefore: '^\)\;'
+    when: empty_skeleton_directory is defined and empty_skeleton_directory == True
 
   ########################
   ## setup the apache site
