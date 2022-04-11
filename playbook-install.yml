@@ -55,30 +55,7 @@
       remote_src: yes
       dest: /home/pacs/{{pac}}/users/{{user}}/nextcloud
       extra_opts: [--strip-components=1]
-
-  - name: finish nextcloud installation
-    become: yes
-    become_user: "{{pac}}-{{user}}"
-    shell: |
-      # see https://docs.nextcloud.com/server/latest/admin_manual/installation/command_line_installation.html
-      php occ maintenance:install --database "{{dbms}}" --database-name "{{pac}}_{{user}}" --database-user "{{pac}}_{{user}}" --database-pass "{{password}}" --admin-user "{{adminuser}}" --admin-pass "{{adminpassword}}"
-      touch ~/ansible.nextcloud_installed
-    args:
-      executable: /bin/bash
-      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
-      creates: "/home/pacs/{{pac}}/users/{{user}}/.ansible_nextcloud_installed"
-
-  - name: install default apps
-    become: yes
-    become_user: "{{pac}}-{{user}}"
-    shell: |
-      # see https://docs.nextcloud.com/server/19/admin_manual/configuration_server/occ_command.html#apps-commands-label
-      php -d memory_limit=512M ./occ app:install {{item}}
-    args:
-      executable: /bin/bash
-      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
-      creates: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/apps/{{item}}"
-    loop: "{{ ['richdocuments', 'richdocumentscode', 'contacts', 'calendar', 'mail', 'spreed', 'groupfolders', 'twofactor_totp'] }}"
+      creates: /home/pacs/{{pac}}/users/{{user}}/nextcloud/config
 
   #################################
   ## setup the data directory
@@ -94,6 +71,7 @@
       path: "/home/storage/{{pac}}/users/{{user}}/data"
       state: directory
       mode: 0744
+      recurse: no
     when: hdd_storage.stat.exists
 
   - name: create symbolic link for data to storage
@@ -105,27 +83,28 @@
       state: link
     when: hdd_storage.stat.exists
 
-  - name: create data directory on sdd
+  - name: create data directory on ssd
     become: yes
     become_user: "{{pac}}-{{user}}"
     file:
       path: "/home/pacs/{{pac}}/users/{{user}}/data"
       state: directory
       mode: 0744
+      recurse: no
     when: not hdd_storage.stat.exists
 
-  - name: configure hdd data directory
-    lineinfile:
-      path: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php"
-      regexp: "^.*'datadirectory' => '.*',$"
-      line: "  'datadirectory' => '/home/storage/{{pac}}/users/{{user}}/data',"
+  - name: configure hdd data directory path
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    set_fact:
+      data_path: "/home/storage/{{pac}}/users/{{user}}/data"
     when: hdd_storage.stat.exists
 
-  - name: configure ssd data directory
-    lineinfile:
-      path: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php"
-      regexp: "^.*'datadirectory' => '.*',$"
-      line: "  'datadirectory' => '/home/pacs/{{pac}}/users/{{user}}/data',"
+  - name: configure ssd data directory path
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    set_fact:
+      data_path: "/home/pacs/{{pac}}/users/{{user}}/data"
     when: not hdd_storage.stat.exists
 
   ##################################
@@ -151,6 +130,32 @@
     become: yes
     become_user: "{{pac}}-{{user}}"
     template: dest="/home/pacs/{{pac}}/users/{{user}}/.logrotate" src="templates/logrotate" mode=0600
+
+  ########################################
+  ## finish installation and install apps
+  ########################################
+  - name: finish nextcloud installation
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      # see https://docs.nextcloud.com/server/latest/admin_manual/installation/command_line_installation.html
+      php occ maintenance:install --database "{{dbms}}" --database-name "{{pac}}_{{user}}" --database-user "{{pac}}_{{user}}" --database-pass "{{password}}" --admin-user "{{adminuser}}" --admin-pass "{{adminpassword}}" --data-dir "{{data_path}}"
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
+      creates: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php"
+
+  - name: install default apps
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      # see https://docs.nextcloud.com/server/19/admin_manual/configuration_server/occ_command.html#apps-commands-label
+      php -d memory_limit=512M ./occ app:install {{item}}
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
+      creates: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/apps/{{item}}"
+    loop: "{{ ['richdocuments', 'richdocumentscode', 'contacts', 'calendar', 'mail', 'spreed', 'groupfolders', 'twofactor_totp'] }}"
 
   ##########################
   ## nextcloud configuration
@@ -200,6 +205,24 @@
       line: "  'skeletondirectory' => '',"
       insertbefore: '^\)\;'
     when: empty_skeleton_directory is defined and empty_skeleton_directory == True
+
+  - name: configure hdd data directory
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    lineinfile:
+      path: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php"
+      regexp: "^.*'datadirectory' => '.*',$"
+      line: "  'datadirectory' => '/home/storage/{{pac}}/users/{{user}}/data',"
+    when: hdd_storage.stat.exists
+
+  - name: configure ssd data directory
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    lineinfile:
+      path: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php"
+      regexp: "^.*'datadirectory' => '.*',$"
+      line: "  'datadirectory' => '/home/pacs/{{pac}}/users/{{user}}/data',"
+    when: not hdd_storage.stat.exists
 
   ########################
   ## setup the apache site
