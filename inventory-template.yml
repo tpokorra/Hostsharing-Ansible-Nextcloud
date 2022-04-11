@@ -1,0 +1,30 @@
+nextcloud:
+  hosts:
+    {{pac}}:
+      ansible_ssh_host: {{pac}}.hostsharing.net
+      ansible_ssh_user: {{pac}}
+      pac: {{pac}}
+      domain: {{domain}}
+      user: {{username}}
+      password: {{password}}
+      # database: postgresql or mysql
+      dbms: mysql
+
+      adminuser: nc_admin
+      adminpassword: {{initial_password}}
+
+      redispassword: {{password1}}
+      redisport: {{port1}}
+
+      turnport: {{port2}}
+      # xyz00.hostsharing.net
+      turnpaketip: {{pac_ip}}
+      # hxy.hostsharing.net
+      turnhostip: {{hostname_ip}}
+      turnsecret: {{password2}}
+
+      # default phone region
+      default_phone_region: DE
+
+      # empty skeleton_directory
+      empty_skeleton_directory: True
