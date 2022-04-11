@@ -23,8 +23,14 @@ nextcloud:
       turnhostip: {{hostname_ip}}
       turnsecret: {{password2}}
 
+      # see https://nextcloud.com/changelog/#latest22
+      nextcloud_version: 22.2.6
+
       # default phone region
       default_phone_region: DE
 
       # empty skeleton_directory
       empty_skeleton_directory: True
+
+      SaasActivationPassword: {{SaasActivationPassword}}
+      SaasInstanceStatus: {{SaasInstanceStatus}}
