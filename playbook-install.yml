@@ -269,7 +269,7 @@
     cron:
       name: "start monit at reboot"
       special_time: reboot
-      job: rm -f $HOME/var/run/monit.id && /usr/bin/monit -c "$HOME/.monitrc"
+      job: rm -f $HOME/var/run/* && /usr/bin/monit -c "$HOME/.monitrc"
   - name: run logrotate once a day
     become: yes
     become_user: "{{pac}}-{{user}}"

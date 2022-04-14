@@ -1,6 +1,7 @@
 set daemon 60 with start delay 120
 set logfile /home/pacs/{{pac}}/users/{{user}}/var/log/monit.log
 set idfile /home/pacs/{{pac}}/users/{{user}}/var/run/monit.id
+set pidfile /home/pacs/{{pac}}/users/{{user}}/var/run/monit.pid
 set statefile /home/pacs/{{pac}}/users/{{user}}/var/run/monit.state
 set mailserver localhost
 set mail-format { from: monit@{{pac}}.hostsharing.net }
