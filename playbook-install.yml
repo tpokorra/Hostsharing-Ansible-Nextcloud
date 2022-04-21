@@ -19,6 +19,12 @@
     file:
       path: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
       state: directory
+  - name: create directory bin
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    file:
+      path: "/home/pacs/{{pac}}/users/{{user}}/bin"
+      state: directory
   - name: create directory etc
     become: yes
     become_user: "{{pac}}-{{user}}"
@@ -293,6 +299,14 @@
       hour: "1"
       minute: "12"
       job: "/usr/bin/php $HOME/nextcloud/occ app:update --all -n --no-ansi"
+
+  ######################
+  ## upload sql script
+  ######################
+  - name: upload sql script
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    template: dest="/home/pacs/{{pac}}/users/{{user}}/bin/sql.sh" src="templates/sql.sh" mode=0700
 
   ##############################################
   ## start the redis and turn services via monit
