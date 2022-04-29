@@ -34,3 +34,5 @@ nextcloud:
 
       SaasActivationPassword: {{SaasActivationPassword}}
       SaasInstanceStatus: {{SaasInstanceStatus}}
+      wopi_url: "https://{{pac}}.hostsharing.net"
+      with_local_office: False

@@ -161,7 +161,29 @@
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
       creates: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/apps/{{item}}"
-    loop: "{{ ['richdocuments', 'richdocumentscode', 'contacts', 'calendar', 'mail', 'spreed', 'groupfolders', 'twofactor_totp'] }}"
+    loop: "{{ ['richdocuments', 'contacts', 'calendar', 'mail', 'spreed', 'groupfolders', 'twofactor_totp'] }}"
+
+  - name: install local office
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      php -d memory_limit=512M ./occ app:install richdocumentscode
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
+      creates: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/apps/richdocumentscode"
+    when: with_local_office == True
+
+  - name: set wopi_url for Nextcloud Office
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      # see https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/occ_command.html#config-commands
+      php occ config:app:set --value "{{wopi_url}}" richdocuments wopi_url || exit -1
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
+    when: wopi_url is defined
 
   ##########################
   ## nextcloud configuration

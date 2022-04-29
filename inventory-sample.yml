@@ -31,3 +31,10 @@ nextcloud:
 
       # empty skeleton_directory
       empty_skeleton_directory: True
+
+      # see https://wiki.hostsharing.net/index.php?title=Collabora_Online
+      # if you have received an email from Hostsharing Service, that Nextcloud Office (Collabora Online) has been configured for you:
+      # WopiUrl: "https://{{pac}}.hostsharing.net"
+      # if you never want to use the centrally installed Nextcloud Office, you can install the app richdocumentscode yourself
+      # this might not have the best performance.
+      # WithLocalOffice: True
