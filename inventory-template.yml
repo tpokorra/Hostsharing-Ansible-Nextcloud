@@ -23,8 +23,8 @@ nextcloud:
       turnhostip: {{hostname_ip}}
       turnsecret: {{password2}}
 
-      # see https://nextcloud.com/changelog/#latest22
-      nextcloud_version: 22.2.6
+      # see https://nextcloud.com/changelog/#latest23
+      nextcloud_version: 23.0.4
 
       # default phone region
       default_phone_region: DE
