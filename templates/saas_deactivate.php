@@ -28,6 +28,7 @@ try {
     $stmt = $pdo->query("SELECT uid from ".$CONFIG['dbtableprefix']."users");
     while ($row = $stmt->fetch()) {
         # deactivate the user
+        # could run alternatively: php occ user:disable {{adminuser}}
         $stmtUpdate = $pdo->prepare("INSERT INTO ".$CONFIG['dbtableprefix']."preferences (userid, appid, configkey, configvalue) ".
             "VALUES(?, 'core', 'enabled', 'false') ON DUPLICATE KEY UPDATE configvalue='false'");
         $stmtUpdate->execute([$row['uid']]);

@@ -20,6 +20,7 @@ if (empty($USER_EMAIL_ADDRESS)) {
 
 try {
     # enable the administrator user
+    # could run alternatively: php occ user:enable {{adminuser}}
     $pdo = new PDO('mysql:host=localhost;dbname='.$CONFIG['dbname'], $CONFIG['dbuser'], $CONFIG['dbpassword']);
     $stmtUpdate = $pdo->prepare("INSERT INTO ".$CONFIG['dbtableprefix']."preferences (userid, appid, configkey, configvalue) ".
         "VALUES(?, 'core', 'enabled', 'true') ON DUPLICATE KEY UPDATE configvalue='true'");
