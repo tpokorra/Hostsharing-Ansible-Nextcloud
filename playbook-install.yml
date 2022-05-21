@@ -234,6 +234,16 @@
       insertbefore: '^\)\;'
     when: empty_skeleton_directory is defined and empty_skeleton_directory == True
 
+  - name: configure updater.server.url
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    lineinfile:
+      path: /home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php
+      regexp: "^.*'updater.server.url' =>.*,$"
+      line: "  'updater.server.url' => '{{updater_server_url}}',"
+      insertbefore: '^\)\;'
+    when: updater_server_url is defined
+
   - name: configure hdd data directory
     become: yes
     become_user: "{{pac}}-{{user}}"

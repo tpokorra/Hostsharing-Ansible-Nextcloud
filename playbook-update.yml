@@ -1,0 +1,27 @@
+---
+- hosts: nextcloud
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+  tasks:
+
+  - name: Update Nextcloud
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      php updater.phar --no-interaction || exit -1 #  --no-backup
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/updater"
+
+  - name: Database Optimisations
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      php occ db:add-missing-primary-keys --no-interaction || exit -1
+      php occ db:add-missing-columns --no-interaction || exit -1
+      php occ db:add-missing-indices --no-interaction | exit -1
+      php occ db:convert-filecache-bigint --no-interaction || exit -1
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"

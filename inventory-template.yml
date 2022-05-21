@@ -24,7 +24,8 @@ nextcloud:
       turnsecret: {{password2}}
 
       # see https://nextcloud.com/changelog/#latest23
-      nextcloud_version: 23.0.4
+      nextcloud_version: 23.0.5
+      updater_server_url: "https://ncupdater.solidcharity.com"
 
       # default phone region
       default_phone_region: DE
