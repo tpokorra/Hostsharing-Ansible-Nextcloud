@@ -23,7 +23,8 @@ if (!is_run_from_cli()) {
 }
 
 try {
-    $pdo = new PDO('mysql:host=localhost;dbname='.$CONFIG['dbname'], $CONFIG['dbuser'], $CONFIG['dbpassword']);
+    $pdo = new PDO('mysql:host=localhost;dbname={{pac}}_{{user}}', '{{pac}}_{{user}}', '{{password}}');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     # retrieve all users
     $stmt = $pdo->query("SELECT uid from ".$CONFIG['dbtableprefix']."users");
     while ($row = $stmt->fetch()) {
