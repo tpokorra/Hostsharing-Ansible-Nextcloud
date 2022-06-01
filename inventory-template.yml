@@ -14,9 +14,8 @@ nextcloud:
       adminpassword: {{initial_password}}
 
       redispassword: {{password1}}
-      redisport: {{port1}}
 
-      turnport: {{port2}}
+      turnport: {{port1}}
       # xyz00.hostsharing.net
       turnpaketip: {{pac_ip}}
       # hxy.hostsharing.net

@@ -208,8 +208,8 @@
           'memcache.locking' => '\\OC\\Memcache\\Redis',
           'redis' =>
           array (
-            'host' => '127.0.0.1',
-            'port' => {{redisport}},
+            'host' => '/home/pacs/{{pac}}/users/{{user}}/var/run/redis-server.sock',
+            'port' => 0,
             'password' => '{{redispassword}}',
             'timeout' => 1.5,
           ),
