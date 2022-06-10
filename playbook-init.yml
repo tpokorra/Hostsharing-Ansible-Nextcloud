@@ -1,0 +1,11 @@
+---
+- hosts: nextcloud
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    # see https://docs.ansible.com/ansible/latest/user_guide/become.html#risks-of-becoming-an-unprivileged-user
+    ansible_common_remote_group: "{{pac}}"
+    ansible_remote_tmp: ~/.ansible/tmp
+
+  tasks:
+  - name: Create user, domain and database
+    import_tasks: tasks/hs_basis.yml
