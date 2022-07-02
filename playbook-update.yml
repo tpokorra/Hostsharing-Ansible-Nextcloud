@@ -25,3 +25,12 @@
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
+
+  - name: Update all apps
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      php occ app:update --all -n --no-ansi || exit -1
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
