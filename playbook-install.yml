@@ -298,6 +298,24 @@
       src: "templates/php.ini"
       dest: "/home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/fastcgi-ssl/php.ini"
 
+  ######################
+  ## upload sql script
+  ######################
+  - name: upload sql script
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    template: dest="/home/pacs/{{pac}}/users/{{user}}/bin/sql.sh" src="templates/sql.sh" mode=0700
+
+  - name: upload database backup script
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    template: dest="/home/pacs/{{pac}}/users/{{user}}/bin/backup.sh" src="templates/backup.sh" mode=0700
+
+  - name: upload mysql configuration file
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    template: dest="/home/pacs/{{pac}}/users/{{user}}/.my.cnf" src="templates/my.cnf" mode=0600
+
   ####################################
   ## install cron jobs
   ####################################
@@ -331,14 +349,14 @@
       hour: "1"
       minute: "12"
       job: "/usr/bin/php $HOME/nextcloud/occ app:update --all -n --no-ansi"
-
-  ######################
-  ## upload sql script
-  ######################
-  - name: upload sql script
+  - name: backup the database
     become: yes
     become_user: "{{pac}}-{{user}}"
-    template: dest="/home/pacs/{{pac}}/users/{{user}}/bin/sql.sh" src="templates/sql.sh" mode=0700
+    cron:
+      name: "database backup"
+      hour: "1"
+      minute: "23"
+      job: "$HOME/bin/backup.sh"
 
   ##############################################
   ## start the redis and turn services via monit
