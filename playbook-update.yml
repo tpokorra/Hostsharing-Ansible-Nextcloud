@@ -24,11 +24,11 @@
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/updater"
 
-  - name: Update all apps
+  - name: Upgrade Nextcloud
     become: yes
     become_user: "{{pac}}-{{user}}"
     shell: |
-      php ./occ app:update --all -n --no-ansi || exit -1
+      php occ upgrade --no-interaction || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
