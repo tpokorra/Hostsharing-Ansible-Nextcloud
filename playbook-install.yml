@@ -195,6 +195,26 @@
       path: /home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php
       regexp: "^.*0 => 'localhost',$"
       line: "    0 => 'localhost', 1 => '{{domain}}',"
+    when: domain == custom_domain
+
+  - name: set the trusted domain with custom_domain
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    lineinfile:
+      path: /home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php
+      regexp: "^.*0 => 'localhost',$"
+      line: "    0 => 'localhost', 1 => '{{custom_domain}}',"
+    when: domain != custom_domain
+
+  - name: set the host for the custom_domain
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    lineinfile:
+      path: /home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php
+      regexp: "^.*'overwritehost' =>.*,$"
+      line: "  'overwritehost' => '{{custom_domain}}',"
+      insertbefore: '^\)\;'
+    when: domain != custom_domain
 
   - name: configure redis for nextcloud
     become: yes

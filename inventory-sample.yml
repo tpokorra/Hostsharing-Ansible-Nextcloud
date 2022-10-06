@@ -5,6 +5,7 @@ nextcloud:
       ansible_ssh_user: xyz00
       pac: xyz00
       domain: cloud.example.org
+      custom_domain: cloud.example.org
       user: nextcloud
       password: testpassw0rd_changeme
       # database: postgresql or mysql
