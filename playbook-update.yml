@@ -15,14 +15,25 @@
       insertbefore: '^\)\;'
     when: updater_server_url is defined
 
-  - name: Update Nextcloud
+  - name: Update Nextcloud with backup
     become: yes
     become_user: "{{pac}}-{{user}}"
     shell: |
-      php updater.phar --no-interaction || exit -1 #  --no-backup
+      php updater.phar --no-interaction || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/updater"
+    when: update_with_backup == True
+
+  - name: Update Nextcloud without backup
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      php updater.phar --no-interaction --no-backup || exit -1
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/updater"
+    when: update_with_backup == False
 
   - name: Upgrade Nextcloud
     become: yes

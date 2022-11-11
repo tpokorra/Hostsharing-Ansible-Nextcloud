@@ -38,3 +38,6 @@ nextcloud:
       # if you never want to use the centrally installed Nextcloud Office, you can install the app richdocumentscode yourself
       # this might not have the best performance.
       # with_local_office: True
+
+      # should we create a backup before running the update?
+      update_with_backup: True
