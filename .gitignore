@@ -1,2 +1,3 @@
 inventory.yml
 inventory*prod.yml
+inventory_*.yml
