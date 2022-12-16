@@ -216,6 +216,16 @@
       insertbefore: '^\)\;'
     when: domain != custom_domain
 
+  - name: set the host for the trusted_proxies
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    lineinfile:
+      path: /home/pacs/{{pac}}/users/{{user}}/nextcloud/config/config.php
+      regexp: "^.*'trusted_proxies' =>.*,$"
+      line: "  'trusted_proxies' => array (0 => '{{custom_domain}}',),"
+      insertbefore: '^\)\;'
+    when: domain != custom_domain
+
   - name: configure redis for nextcloud
     become: yes
     become_user: "{{pac}}-{{user}}"
