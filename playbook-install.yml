@@ -7,8 +7,9 @@
     ansible_remote_tmp: ~/.ansible/tmp
 
   tasks:
-  - name: Create user, domain and database
-    import_tasks: tasks/hs_basis.yml
+  # use playbook_init.yml instead!
+  #- name: Create user, domain and database
+  #  import_tasks: tasks/hs_basis.yml
 
   #################################
   ## create directories
@@ -121,16 +122,19 @@
     become: yes
     become_user: "{{pac}}-{{user}}"
     template: dest="/home/pacs/{{pac}}/users/{{user}}/etc/redis.conf" src="templates/redis.conf" mode=0600
+    when: redispassword is defined
 
   - name: upload turnserver configuration
     become: yes
     become_user: "{{pac}}-{{user}}"
     template: dest="/home/pacs/{{pac}}/users/{{user}}/etc/turnserver.conf" src="templates/turnserver.conf" mode=0600
+    when: turnport is defined
 
   - name: upload monit configuration
     become: yes
     become_user: "{{pac}}-{{user}}"
     template: dest="/home/pacs/{{pac}}/users/{{user}}/.monitrc" src="templates/monitrc" mode=0600
+    when: redispassword is defined
 
   - name: upload logrotate configuration
     become: yes
@@ -140,12 +144,18 @@
   ########################################
   ## finish installation and install apps
   ########################################
+  - name: "Set variables for database"
+    set_fact:
+      dbname: "{{user}}"
+      dbuser: "{{user}}"
+    when: dbname is not defined
+
   - name: finish nextcloud installation
     become: yes
     become_user: "{{pac}}-{{user}}"
     shell: |
       # see https://docs.nextcloud.com/server/latest/admin_manual/installation/command_line_installation.html
-      php occ maintenance:install --database "{{dbms}}" --database-name "{{pac}}_{{user}}" --database-user "{{pac}}_{{user}}" --database-pass "{{password}}" --admin-user "{{adminuser}}" --admin-pass "{{adminpassword}}" --data-dir "{{data_path}}"
+      php occ maintenance:install --database "{{nc_dbms}}" --database-name "{{pac}}_{{dbname}}" --database-user "{{pac}}_{{dbuser}}" --database-pass "{{password}}" --admin-user "{{adminuser}}" --admin-pass "{{adminpassword}}" --data-dir "{{data_path}}"
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
@@ -161,7 +171,18 @@
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
       creates: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/apps/{{item}}"
-    loop: "{{ ['richdocuments', 'contacts', 'calendar', 'mail', 'spreed', 'groupfolders', 'twofactor_totp'] }}"
+    loop: "{{ ['contacts', 'calendar', 'mail', 'spreed', 'groupfolders', 'twofactor_totp'] }}"
+
+  - name: install richdocuments app
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      php -d memory_limit=512M ./occ app:install richdocuments
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
+      creates: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/apps/richdocuments"
+    when: wopi_url is defined
 
   - name: install local office
     become: yes
@@ -243,6 +264,7 @@
             'password' => '{{redispassword}}',
             'timeout' => 1.5,
           ),
+    when: redispassword is defined
 
   - name: configure default_phone_region
     become: yes
@@ -331,20 +353,38 @@
   ######################
   ## upload sql script
   ######################
+  - name: upload mysql configuration file
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    template: dest="/home/pacs/{{pac}}/users/{{user}}/.my.cnf" src="templates/my.cnf" mode=0600
+    when: dbms == 'mysql'
+
   - name: upload sql script
     become: yes
     become_user: "{{pac}}-{{user}}"
     template: dest="/home/pacs/{{pac}}/users/{{user}}/bin/sql.sh" src="templates/sql.sh" mode=0700
+    when: dbms == 'mysql'
 
   - name: upload database backup script
     become: yes
     become_user: "{{pac}}-{{user}}"
     template: dest="/home/pacs/{{pac}}/users/{{user}}/bin/backup.sh" src="templates/backup.sh" mode=0700
+    when: dbms == 'mysql'
 
   - name: upload mysql configuration file
     become: yes
     become_user: "{{pac}}-{{user}}"
     template: dest="/home/pacs/{{pac}}/users/{{user}}/.my.cnf" src="templates/my.cnf" mode=0600
+    when: dbms == 'mysql'
+
+  - name: Upload pgpass file
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    template:
+      src: "templates/pgpass"
+      dest: "/home/pacs/{{pac}}/users/{{user}}/.pgpass"
+      mode: "600"
+    when: dbms == 'postgresql'
 
   ####################################
   ## install cron jobs
@@ -388,6 +428,22 @@
       minute: "23"
       job: "$HOME/bin/backup.sh"
 
+  - name: upload nextcloud update script
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    template: dest="/home/pacs/{{pac}}/users/{{user}}/bin/update.sh" src="templates/update.sh" mode=0700
+    when: updater_server_url is defined
+
+  - name: cronjob for updating nextcloud itself
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    cron:
+      name: "nextcloud update"
+      hour: "3"
+      minute: "23"
+      job: "$HOME/bin/update.sh"
+    when: updater_server_url is defined and auto_update is defined and auto_update == True
+
   ##############################################
   ## start the redis and turn services via monit
   ##############################################
@@ -400,3 +456,4 @@
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/"
       creates: "/home/pacs/{{pac}}/users/{{user}}/var/run/monit.id"
+    when: redispassword is defined

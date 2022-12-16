@@ -15,24 +15,33 @@
       insertbefore: '^\)\;'
     when: updater_server_url is defined
 
+  - name: enable maintenance mode
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      php occ maintenance:mode --on || exit -1
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
+
   - name: Update Nextcloud with backup
     become: yes
     become_user: "{{pac}}-{{user}}"
     shell: |
-      php updater.phar --no-interaction || exit -1
+      php updater/updater.phar --no-interaction || exit -1
     args:
       executable: /bin/bash
-      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/updater"
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
     when: update_with_backup == True
 
   - name: Update Nextcloud without backup
     become: yes
     become_user: "{{pac}}-{{user}}"
     shell: |
-      php updater.phar --no-interaction --no-backup || exit -1
+      php updater/updater.phar --no-interaction --no-backup || exit -1
     args:
       executable: /bin/bash
-      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud/updater"
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
     when: update_with_backup == False
 
   - name: Upgrade Nextcloud
@@ -61,6 +70,15 @@
     become_user: "{{pac}}-{{user}}"
     shell: |
       php occ app:update --all -n --no-ansi || exit -1
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
+
+  - name: disable maintenance mode
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      php occ maintenance:mode --off || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
