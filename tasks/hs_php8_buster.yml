@@ -1,0 +1,18 @@
+# on Debian Buster, install php 8.1 in fastcgi-ssl
+
+---
+- name: copy the phpstub
+  become: yes
+  copy:
+    src: /usr/local/src/phpstub/phpstub81
+    dest: /home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/fastcgi-ssl/
+    remote_src: yes
+    mode: "755"
+
+#AddType application/x-httpd-php81 .php
+#Action application/x-httpd-php81 /fastcgi-bin/phpstub81
+- name: upload .htaccess file
+  become: yes
+  template:
+    src: "templates/htaccess"
+    dest: "/home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/.htaccess"

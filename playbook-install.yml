@@ -1,5 +1,6 @@
 ---
 - hosts: nextcloud
+  become_user: "{{pac}}-{{user}}"
   vars:
     ansible_python_interpreter: /usr/bin/python3
     # see https://docs.ansible.com/ansible/latest/user_guide/become.html#risks-of-becoming-an-unprivileged-user
@@ -50,6 +51,12 @@
     file:
       path: "/home/pacs/{{pac}}/users/{{user}}/var/run"
       state: directory
+
+  ##################################
+  ## update PHP
+  ##################################
+  - name: Install lastest PHP
+    import_tasks: tasks/hs_php8_buster.yml
 
   ##################################
   ## install nextcloud

@@ -1,1 +1,4 @@
 DirectoryIndex disabled
+
+AddType application/x-httpd-php81 .php
+Action application/x-httpd-php81 /fastcgi-bin/phpstub81
