@@ -10,6 +10,7 @@ nextcloud:
       password: {{password}}
       # database: postgresql or mysql
       dbms: mysql
+      nc_dbms: mysql
 
       adminuser: nc_admin
       adminpassword: {{initial_password}}
