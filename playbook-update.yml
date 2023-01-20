@@ -1,5 +1,6 @@
 ---
 - hosts: nextcloud
+  become_user: "{{pac}}-{{user}}"
   vars:
     ansible_python_interpreter: /usr/bin/python3
 
@@ -82,3 +83,11 @@
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
+
+
+  - name: fix gc problem in php.ini
+    become: yes
+    lineinfile:
+      path: "/home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/fastcgi-ssl/php.ini"
+      regexp: '^session.gc_probability'
+      line: "session.gc_probability = 0"
