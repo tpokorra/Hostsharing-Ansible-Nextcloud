@@ -10,6 +10,8 @@ nextcloud:
       password: testpassw0rd_changeme
       # database: postgresql or mysql
       dbms: mysql
+      # database: pgsql or mysql
+      nc_dbms: mysql
 
       adminuser: admin_nextcloud
       adminpassword: testpassw0rd_changeme2

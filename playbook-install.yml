@@ -378,12 +378,6 @@
     template: dest="/home/pacs/{{pac}}/users/{{user}}/bin/backup.sh" src="templates/backup.sh" mode=0700
     when: dbms == 'mysql'
 
-  - name: upload mysql configuration file
-    become: yes
-    become_user: "{{pac}}-{{user}}"
-    template: dest="/home/pacs/{{pac}}/users/{{user}}/.my.cnf" src="templates/my.cnf" mode=0600
-    when: dbms == 'mysql'
-
   - name: Upload pgpass file
     become: yes
     become_user: "{{pac}}-{{user}}"
