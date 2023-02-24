@@ -25,8 +25,8 @@ nextcloud:
       turnhostip: 192.168.178.200
       turnsecret: another_top_secret
 
-      # see https://nextcloud.com/changelog/#latest24
-      nextcloud_version: 25.0.2
+      # see https://nextcloud.com/changelog/#latest25
+      nextcloud_version: 25.0.4
 
       # default phone region
       default_phone_region: DE

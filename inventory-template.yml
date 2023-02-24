@@ -25,8 +25,8 @@ nextcloud:
       turnhostip: {{hostname_ip}}
       turnsecret: {{password2}}
 
-      # see https://nextcloud.com/changelog/#latest24
-      nextcloud_version: 25.0.2
+      # see https://nextcloud.com/changelog/#latest25
+      nextcloud_version: 25.0.4
       updater_server_url: "https://ncupdater.solidcharity.com"
 
       # default phone region
