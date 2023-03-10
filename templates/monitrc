@@ -6,10 +6,3 @@ set statefile /home/pacs/{{pac}}/users/{{user}}/var/run/monit.state
 set mailserver localhost
 set mail-format { from: monit@{{pac}}.hostsharing.net }
 
-check process redis with pidfile /home/pacs/{{pac}}/users/{{user}}/var/run/redis-server.pid
-  start program "/usr/bin/redis-server /home/pacs/{{pac}}/users/{{user}}/etc/redis.conf"
-  stop program "/bin/bash -c '/bin/kill $( cat /home/pacs/{{pac}}/users/{{user}}/var/run/redis-server.pid )'"
-
-check process turnserver with pidfile /home/pacs/{{pac}}/users/{{user}}/var/run/turnserver.pid
-  start program "/bin/bash -c '/usr/bin/turnserver -c /home/pacs/{{pac}}/users/{{user}}/etc/turnserver.conf &'"
-  stop program "/bin/bash -c '/bin/kill $( cat /home/pacs/{{pac}}/users/{{user}}/var/run/turnserver.pid )'"

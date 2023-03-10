@@ -141,6 +141,29 @@
     become: yes
     become_user: "{{pac}}-{{user}}"
     template: dest="/home/pacs/{{pac}}/users/{{user}}/.monitrc" src="templates/monitrc" mode=0600
+
+  - name: insert turnserver in monitrc
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    blockinfile:
+      dest: /home/pacs/{{pac}}/users/{{user}}/.monitrc
+      marker: "# {mark} ANSIBLE MANAGED BLOCK turnserver"
+      block: |
+        check process turnserver with pidfile /home/pacs/{{pac}}/users/{{user}}/var/run/turnserver.pid
+          start program "/bin/bash -c '/usr/bin/turnserver -c /home/pacs/{{pac}}/users/{{user}}/etc/turnserver.conf &'"
+          stop program "/bin/bash -c '/bin/kill $( cat /home/pacs/{{pac}}/users/{{user}}/var/run/turnserver.pid )'"
+    when: turnport is defined
+
+  - name: insert redis in monitrc
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    blockinfile:
+      dest: /home/pacs/{{pac}}/users/{{user}}/.monitrc
+      marker: "# {mark} ANSIBLE MANAGED BLOCK redis"
+      block: |
+        check process redis with pidfile /home/pacs/{{pac}}/users/{{user}}/var/run/redis-server.pid
+          start program "/usr/bin/redis-server /home/pacs/{{pac}}/users/{{user}}/etc/redis.conf"
+          stop program "/bin/bash -c '/bin/kill $( cat /home/pacs/{{pac}}/users/{{user}}/var/run/redis-server.pid )'"
     when: redispassword is defined
 
   - name: upload logrotate configuration
