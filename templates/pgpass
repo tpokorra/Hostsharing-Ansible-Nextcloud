@@ -1,1 +1,1 @@
-localhost:5432:{{pac}}_{{dbname}}:{{pac}}_{{dbuser}}:{{password}}
+localhost:5432:{{pac}}_{{user}}:{{pac}}_{{user}}:{{password}}
