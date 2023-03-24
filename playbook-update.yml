@@ -84,10 +84,18 @@
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
 
-
   - name: fix gc problem in php.ini
     become: yes
     lineinfile:
       path: "/home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/fastcgi-ssl/php.ini"
       regexp: '^session.gc_probability'
       line: "session.gc_probability = 0"
+
+  # we are using gc_probability = 0
+  - name: delete old sessions from tmp directory
+    become: yes
+    cron:
+      name: "delete old sessions"
+      hour: "1"
+      minute: "19"
+      job: "find $HOME/var/tmp/ -cmin +$((1440*7)) -print0 | xargs -0 -r rm"

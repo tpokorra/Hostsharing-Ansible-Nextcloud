@@ -468,6 +468,15 @@
       job: "$HOME/bin/update.sh"
     when: updater_server_url is defined and auto_update is defined and auto_update == True
 
+  # we are using gc_probability = 0
+  - name: delete old sessions from tmp directory
+    become: yes
+    cron:
+      name: "delete old sessions"
+      hour: "1"
+      minute: "19"
+      job: "find $HOME/var/tmp/ -cmin +$((1440*7)) -print0 | xargs -0 -r rm"
+
   ##############################################
   ## start the redis and turn services via monit
   ##############################################
