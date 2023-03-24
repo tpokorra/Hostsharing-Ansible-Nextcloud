@@ -26,7 +26,7 @@ nextcloud:
       turnsecret: another_top_secret
 
       # see https://nextcloud.com/changelog/#latest25
-      nextcloud_version: 25.0.4
+      nextcloud_version: 25.0.5
 
       # default phone region
       default_phone_region: DE
