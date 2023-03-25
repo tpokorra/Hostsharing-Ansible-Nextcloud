@@ -3,6 +3,7 @@
   become_user: "{{pac}}-{{user}}"
   vars:
     ansible_python_interpreter: /usr/bin/python3
+    php: php8.1
 
   tasks:
 
@@ -20,7 +21,7 @@
     become: yes
     become_user: "{{pac}}-{{user}}"
     shell: |
-      php8.1 occ maintenance:mode --on || exit -1
+      {{php}} occ maintenance:mode --on || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
@@ -29,7 +30,7 @@
     become: yes
     become_user: "{{pac}}-{{user}}"
     shell: |
-      php8.1 updater/updater.phar --no-interaction || exit -1
+      {{php}} updater/updater.phar --no-interaction || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
@@ -39,7 +40,7 @@
     become: yes
     become_user: "{{pac}}-{{user}}"
     shell: |
-      php8.1 updater/updater.phar --no-interaction --no-backup || exit -1
+      {{php}} updater/updater.phar --no-interaction --no-backup || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
@@ -49,7 +50,7 @@
     become: yes
     become_user: "{{pac}}-{{user}}"
     shell: |
-      php8.1 occ upgrade --no-interaction || exit -1
+      {{php}} occ upgrade --no-interaction || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
@@ -58,10 +59,10 @@
     become: yes
     become_user: "{{pac}}-{{user}}"
     shell: |
-      php8.1 occ db:add-missing-primary-keys --no-interaction || exit -1
-      php8.1 occ db:add-missing-columns --no-interaction || exit -1
-      php8.1 occ db:add-missing-indices --no-interaction | exit -1
-      php8.1 occ db:convert-filecache-bigint --no-interaction || exit -1
+      {{php}} occ db:add-missing-primary-keys --no-interaction || exit -1
+      {{php}} occ db:add-missing-columns --no-interaction || exit -1
+      {{php}} occ db:add-missing-indices --no-interaction | exit -1
+      {{php}} occ db:convert-filecache-bigint --no-interaction || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
@@ -70,7 +71,7 @@
     become: yes
     become_user: "{{pac}}-{{user}}"
     shell: |
-      php8.1 occ app:update --all -n --no-ansi || exit -1
+      {{php}} occ app:update --all -n --no-ansi || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
@@ -79,7 +80,7 @@
     become: yes
     become_user: "{{pac}}-{{user}}"
     shell: |
-      php8.1 occ maintenance:mode --off || exit -1
+      {{php}} occ maintenance:mode --off || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/nextcloud"
